@@ -4,11 +4,14 @@ import { useState } from "react";
 import { Header } from "@/components/Header";
 import { OutlineItem } from "@/components/OutlineItem";
 import { useOutlineStore } from "@/store/useOutlineStore";
-import { findItem, createItem } from "@/types";
+import { findItem } from "@/types";
 
 export default function Home() {
   const {
     state,
+    isLoading,
+    isConnected,
+    isLocalMode,
     updateContent,
     toggleComplete,
     toggleCollapse,
@@ -47,6 +50,17 @@ export default function Home() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading your todos...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Header
@@ -57,6 +71,30 @@ export default function Home() {
         onToggleShowCompleted={toggleShowCompleted}
         onSearch={setSearchQuery}
       />
+
+      {/* Connection indicator */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <div
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs ${
+            isLocalMode
+              ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+              : isConnected
+              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+          }`}
+        >
+          <div
+            className={`w-2 h-2 rounded-full ${
+              isLocalMode
+                ? "bg-blue-500"
+                : isConnected
+                ? "bg-green-500"
+                : "bg-yellow-500 animate-pulse"
+            }`}
+          />
+          {isLocalMode ? "Local only" : isConnected ? "Synced" : "Connecting..."}
+        </div>
+      </div>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         {/* Zoomed item title */}
@@ -101,14 +139,17 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Add new item button */}
-        {filteredItems.length === 0 && (
-          <button
-            onClick={handleAddRoot}
-            className="text-gray-400 hover:text-gray-600 text-sm py-4"
-          >
-            + Add item
-          </button>
+        {/* Empty state */}
+        {filteredItems.length === 0 && !isLoading && (
+          <div className="text-center py-12">
+            <p className="text-gray-400 mb-4">No items yet</p>
+            <button
+              onClick={handleAddRoot}
+              className="text-blue-500 hover:text-blue-600"
+            >
+              + Add your first item
+            </button>
+          </div>
         )}
 
         {/* Keyboard shortcuts help */}
@@ -145,4 +186,3 @@ export default function Home() {
     </div>
   );
 }
-
